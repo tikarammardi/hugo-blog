@@ -1,3 +1,2 @@
 # My Personal Blog
-
-[https://tikarammardi.com](https://tikarammardi.com)
+[![Website](https://img.shields.io/badge/website-tikarammardi.com-blue.svg)](https://tikarammardi.com)
