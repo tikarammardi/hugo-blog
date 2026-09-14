@@ -1,0 +1,54 @@
+<footer class="footer">
+  <section class="container">
+    {{ with .Site.Params.footercontent | safeHTML }}
+      <p>{{ . }}</p>
+    {{ end }}
+    Built with Hugo v{{ hugo.Version }}
+    {{ with .Site.Params.since }}
+      · ©
+      {{ if lt . now.Year }}{{ . }} -{{ end }}{{ now.Year }}
+    {{ else }}
+      · ©
+      {{ now.Year }}
+    {{ end }}
+    <span>
+      <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license">
+        <img
+          alt="Creative Commons License"
+          style="border-width:0"
+          src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"
+      /></a>
+    </span>
+
+
+    {{ with .Site.Params.social }}
+      <ul>
+        {{ range sort . }}
+          {{ if .icon }}
+            <li>
+              <a
+                href="{{ .url }}"
+                aria-label="{{ .name }}"
+                {{ if .rel }}rel="{{ .rel }}"{{ end }}
+                {{ if .target }}target="{{ .target }}"{{ end }}
+                {{ if .type }}type="{{ .type }}"{{ end }}
+              >
+                <i class="{{ .icon }}" aria-hidden="true"></i>
+              </a>
+            </li>
+          {{ else }}
+            <li>
+              <a
+                href="{{ .url }}"
+                aria-label="{{ .name }}"
+                {{ if .rel }}rel="{{ .rel }}"{{ end }}
+                {{ if .target }}target="{{ .target }}"{{ end }}
+                >{{ .name }}</a
+              >
+            </li>
+          {{ end }}
+        {{ end }}
+      </ul>
+    {{ end }}
+  </section>
+</footer>

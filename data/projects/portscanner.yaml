@@ -1,0 +1,9 @@
+title: Portscanner
+external_url: https://github.com/tikarammardi/portscanner
+start_date: 2024
+end_date: 2024
+blurb: A simple and efficient Port Scanner written in the Go programming language (Golang)
+weight: 97
+technologies:
+  - golang
+  - makefile

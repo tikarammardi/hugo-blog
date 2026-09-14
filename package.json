@@ -1,0 +1,14 @@
+{
+  "name": "hugo-blog",
+  "packageManager": "yarn@3.6.4",
+  "author": "Tikaram Mardi",
+  "version": "1.0.0",
+  "description": "Portfolio website for Tikaram Mardi and blog about technology.",
+  "scripts": {
+    "lint": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "prettier-plugin-go-template": "^0.0.15"
+  }
+}

@@ -1,3 +1,79 @@
-baseURL = 'https://example.org/'
+baseURL = 'tikarammardi.com'
 languageCode = 'en-us'
-title = 'My New Hugo Site'
+title = 'Tikaram Mardi'
+
+pygmentsstyle = "colorful"
+pygmentscodefences = true
+pygmentscodefencesguesssyntax = true
+
+buildFuture = true
+
+[taxonomies]
+  tag = "tags"
+
+[markup]
+  [markup.highlight]
+    style = "native"
+  [markup.goldmark.renderer]
+    # Allow Markdown to include embedded HTML.
+    unsafe= true
+
+[permalinks]
+    posts = "/:filename/"
+
+[params]
+    dateFormat = "April 20, 2025"
+    author = "Tikaram Mardi"
+    info = "Software engineer with a passion for learning and sharing knowledge."
+    description = "Knowledge sharing and personal growth through software development."
+    keywords = "blog,developer,personal,engineer,software,linux,homelab,proxmox"
+    avatarurl = "images/avatar.jpeg"
+
+    favicon_32 = "/images/favicon/favicon-32x32.png"
+    favicon_16 = "/images/favicon/favicon-16x16.png"
+
+    hidecredits = false
+    hidecopyright = false
+
+     popularPosts = [
+        "second-blog",
+    ]
+
+    rtl = false
+
+    photoWidths = [300, 600, 800, 1200]
+
+
+
+[imaging]
+quality = 90
+resampleFilter = "Lanczos"
+
+# Social links
+[[params.social]]
+    name = "GitHub"
+    icon = "fa-brands fa-github fa-2x"
+    weight = 1
+    url = "https://github.com/tikarammardi/"
+
+[[params.social]]
+    name = "LinkedIn"
+    icon = "fa-brands fa-linkedin fa-2x"
+    weight = 3
+    url = "https://www.linkedin.com/in/tikarammardi/"
+
+# Menu links
+[[menu.main]]
+    name = "Blog"
+    weight = 1
+    url  = "/posts/"
+
+[[menu.main]]
+    name = "Projects"
+    weight = 3
+    url = "/projects/"
+
+[[menu.main]]
+    name = "About"
+    weight = 6
+    url = "/about/"

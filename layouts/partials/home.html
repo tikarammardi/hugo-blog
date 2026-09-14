@@ -1,0 +1,32 @@
+<section class="container centered">
+  <div>
+    <p>
+    <div class="lists">
+      <h2>Recent posts</h2>
+
+      <ul>
+        {{ range ( .Site.RegularPages | first 15 ) }}
+          <li>
+            {{ .Date.Format "2025-04-20" }}:
+            <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+            <a class="tag tag-{{ .Section }}" href="/{{ .Section }}/"
+              >{{ .Section }}</a
+            >
+          </li>
+        {{ end }}
+      </ul>
+      <h2>Popular posts</h2>
+      <div class="list">
+        <ul class="blurb-list posts-list">
+          {{ range .Site.Params.popularPosts }}
+            {{ with $.Site.GetPage (printf "/posts/%s" .) }}
+              {{- .Render "li" -}}
+            {{ end }}
+          {{ end }}
+        </ul>
+      </div>
+
+      <p>&nbsp;</p>
+    </div>
+  </div>
+</section>

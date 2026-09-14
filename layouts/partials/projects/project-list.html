@@ -1,0 +1,21 @@
+<section class="container list">
+  <h1 class="title">
+    {{- .Title -}}
+  </h1>
+
+  <h2>Tools and Software Programs I’ve Written</h2>
+  {{ range (sort .Site.Data.projects "weight" "desc") }}
+    <h3>
+      <a href="{{ .external_url }}">{{ .title }}</a>
+      ({{ partial "projects/date-range.html" . }})
+    </h3>
+
+    <p>
+      {{ range .technologies }}
+        <span class="tag"><a href="/tags/{{ . }}/">{{ . }}</a></span>
+      {{ end }}
+    </p>
+
+    {{ .blurb | markdownify }}
+  {{ end }}
+</section>

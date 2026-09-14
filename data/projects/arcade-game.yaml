@@ -1,0 +1,9 @@
+title: Arcade Game
+external_url: https://github.com/tikarammardi/arcade-game
+start_date: 2024
+end_date: 2024
+blurb: An arcade-style game built with Python, Pygame, and managed using Poetry. This game includes features like power-ups, dropping aliens, and a scoring system.
+weight: 100
+technologies:
+  - python
+  - pygame
