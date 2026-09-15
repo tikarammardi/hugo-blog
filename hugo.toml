@@ -1,28 +1,35 @@
 baseURL = 'tikarammardi.com'
-languageCode = 'en-us'
+locale = 'en-us'
 title = 'Tikaram Mardi'
-
-pygmentsstyle = "colorful"
-pygmentscodefences = true
-pygmentscodefencesguesssyntax = true
 
 buildFuture = true
 
 [taxonomies]
   tag = "tags"
 
+# The footer's "Improve this page" link reads the commit SHA from the
+# environment in CI; whitelist it for the getenv template function.
+[security.funcs]
+  getenv = ["^HUGO_", "^CI$", "^GITHUB_SHA$"]
+
 [markup]
-  [markup.highlight]
-    style = "native"
   [markup.goldmark.renderer]
     # Allow Markdown to include embedded HTML.
-    unsafe= true
+    unsafe = true
+
+  # Classed Chroma output with no inline styles, so the site's own
+  # "Cobalt" syntax theme (assets/scss/_syntax.scss) does the colouring.
+  [markup.highlight]
+    noClasses = false
+    style = ""
+    codeFences = true
+    guessSyntax = true
+    lineNos = false
 
 [permalinks]
     posts = "/:filename/"
 
 [params]
-    dateFormat = "April 20, 2025"
     author = "Tikaram Mardi"
     info = "Software engineer with a passion for learning and sharing knowledge."
     description = "Knowledge sharing and personal growth through software development."
@@ -32,33 +39,20 @@ buildFuture = true
     favicon_32 = "/images/favicon/favicon-32x32.png"
     favicon_16 = "/images/favicon/favicon-16x16.png"
 
-    hidecredits = false
-    hidecopyright = false
-
-     popularPosts = [
+    popularPosts = [
         "second-blog",
     ]
 
-    rtl = false
-
     photoWidths = [300, 600, 800, 1200]
-
-
-
-[imaging]
-quality = 90
-resampleFilter = "Lanczos"
 
 # Social links
 [[params.social]]
     name = "GitHub"
-    icon = "fa-brands fa-github fa-2x"
     weight = 1
     url = "https://github.com/tikarammardi/"
 
 [[params.social]]
     name = "LinkedIn"
-    icon = "fa-brands fa-linkedin fa-2x"
     weight = 3
     url = "https://www.linkedin.com/in/tikarammardi/"
 

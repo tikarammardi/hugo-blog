@@ -1,0 +1,20 @@
+{{- /* post-header.html — kicker (date · reading time · tags), title and rule; the kicker is set in mono chrome, and on non-post pages the date and tags are simply absent. */ -}}
+<header class="post-header rise">
+  <p class="post-kicker">
+    {{- if .Date.Year -}}
+      <time datetime="{{ .Date.Format "2006-01-02T15:04:05-07:00" }}">
+        {{ .Date.Format "2006-01-02" }}
+      </time>
+    {{- end -}}
+    {{- if and .Date.Year .IsPage -}}
+      <span class="sep" aria-hidden="true">·</span>
+      <span>{{ .ReadingTime }} min read</span>
+    {{- end -}}
+    {{- range $i, $t := .Params.tags -}}
+      <span class="sep" aria-hidden="true">·</span>
+      <a href="{{ printf "/tags/%s/" ($t | urlize) | relURL }}">{{ $t }}</a>
+    {{- end -}}
+  </p>
+  <h1 class="post-title">{{ .Title }}</h1>
+  <hr class="post-rule" />
+</header>

@@ -27,11 +27,22 @@
     property="og:image"
     content="{{ printf "%s%s" .Permalink $.Params.hero_image }}"
   />
-
 {{ else }}
   {{ with $.Params.images }}
     {{ range first 6 . -}}
-      <meta property="og:image" content="{{ . | absURL }}" />
+      {{- /* Front matter image paths are relative to the post's content directory (page resources); fall back to the bare name, then to a URL joined onto the post's own permalink. */ -}}
+      {{- $img := $.Resources.GetMatch . -}}
+      {{- if not $img }}
+        {{ $img = $.Resources.GetMatch (path.Base .) }}
+      {{ end -}}
+      {{- with $img -}}
+        <meta property="og:image" content="{{ .Permalink }}" />
+      {{- else -}}
+        <meta
+          property="og:image"
+          content="{{ printf "%s%s" $.RelPermalink . | absURL }}"
+        />
+      {{- end -}}
     {{ end }}
   {{ else -}}
     {{- $images := $.Resources.ByType "image" -}}

@@ -1,0 +1,19 @@
+// ---------------------------------------------------------------------------
+// Shared tokens and mixins: the one layout breakpoint and the mono-chrome
+// mixin that every label, date and caption is set in.
+// ---------------------------------------------------------------------------
+
+// The single breakpoint that matters: above it there is room for a left gutter
+// and a right margin column, below it the page is one honest column.
+$wide: 67.5625rem;
+
+// Small uppercase mono for structural chrome: dates, labels, nav, captions.
+@mixin chrome {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-faint);
+}

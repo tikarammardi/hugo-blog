@@ -3,5 +3,8 @@
   {{ .Site.Title }}
 {{ end }}
 {{ define "content" }}
-  {{ partial "page.html" . }}
+  <article class="column">
+    {{ partial "post-header.html" . }}
+    <div class="post-body prose">{{ partial "post-content.html" . }}</div>
+  </article>
 {{ end }}

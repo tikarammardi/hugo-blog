@@ -2,6 +2,10 @@
 PORT ?= 1313
 HOSTNAME ?= localhost
 
+# The SCSS pipeline shells out to `sass`. The asdf shim on PATH is Ruby Sass,
+# which Hugo's Dart Sass transpiler cannot drive, so prefer Homebrew's copy.
+export PATH := /opt/homebrew/bin:$(PATH)
+
 # Default target
 .DEFAULT_GOAL := hugo-serve
 

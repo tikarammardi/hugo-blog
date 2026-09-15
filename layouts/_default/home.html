@@ -1,0 +1,28 @@
+{{ define "content" }}
+  {{- /* The index: the latest post as a lead card, the rest grouped by year, and the colophon floated into the right margin at wide widths. */ -}}
+  {{- $posts := where .Site.RegularPages "Type" "posts" -}}
+  {{- $lead := first 1 $posts -}}
+  {{- $rest := after 1 $posts -}}
+  <div class="page-index column">
+    {{ partial "colophon.html" . }}
+
+
+    <div class="index-body">
+      {{- with $lead }}
+        <div class="index-lead rise" style="--i: 1">
+          <span class="label"
+            >Latest · {{ (index . 0).Date.Format "January 2, 2006" }}</span
+          >
+          <a class="title" href="{{ (index . 0).RelPermalink }}"
+            >{{ (index . 0).Title }}</a
+          >
+          <span class="excerpt"
+            >{{ (index . 0).Summary | plainify | truncate 240 }}</span
+          >
+          <span class="more" aria-hidden="true">Read →</span>
+        </div>
+      {{- end }}
+      {{ partial "year-groups.html" (dict "pages" $rest "start" 2) }}
+    </div>
+  </div>
+{{ end }}

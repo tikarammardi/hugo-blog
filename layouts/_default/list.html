@@ -1,12 +1,39 @@
 {{ define "title" }}
-  {{- if eq .Kind "taxonomy" -}}
-    {{- .Data.Singular | title -}}
-    {{- print ": " -}}
+  {{- if eq .Kind "term" -}}
+    {{- .Data.Singular | title -}}: {{ .Title }} ·
+  {{- else -}}
+    {{- .Title }} ·
   {{- end -}}
-
-  {{- .Title }} ·
-  {{ .Site.Title -}}
+  {{ .Site.Title }}
 {{ end }}
 {{ define "content" }}
-  {{ partial "list.html" . }}
+  <div class="column">
+    <header class="post-header rise">
+      {{- if eq .Kind "term" -}}
+        <p class="post-kicker">
+          <span>{{ .Data.Singular | title }}</span>
+        </p>
+      {{- end -}}
+      <h1 class="post-title">{{ .Title }}</h1>
+      <hr class="post-rule" />
+    </header>
+
+    {{- if eq .Kind "taxonomy" }}
+      {{- /* The index of all terms: each term with its post count. */ -}}
+      <ul class="year__list rise">
+        {{- range .Pages }}
+          <li class="entry">
+            <span class="date"
+              >{{ len .Pages }} post{{ if ne (len .Pages) 1 }}s{{ end }}</span
+            >
+            <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+          </li>
+        {{- end }}
+      </ul>
+    {{- else }}
+      <div class="index-body">
+        {{ partial "year-groups.html" (dict "pages" .RegularPages "start" 1) }}
+      </div>
+    {{- end }}
+  </div>
 {{ end }}
