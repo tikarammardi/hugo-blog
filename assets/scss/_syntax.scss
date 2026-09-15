@@ -1,0 +1,191 @@
+// ---------------------------------------------------------------------------
+// Syntax theme — "Cobalt", drawn to sit on the porcelain code surface in
+// light mode and the navy surface in dark. The site accent is blue, so the
+// tokens spread across the rest of the wheel: violet keywords, green strings,
+// amber numbers, cyan functions, pink types. Hue, not weight, carries the
+// distinction.
+//
+// Hugo ships Chroma rather than Rouge, but the token class names follow the
+// same Pygments taxonomy (.c, .k, .s, .m, .nf, ...), so the rules apply
+// unchanged to <pre class="chroma"> output.
+// ---------------------------------------------------------------------------
+
+:root {
+  --syn-comment: #707a8a;
+  --syn-keyword: #6d28d9;
+  --syn-string: #15803d;
+  --syn-number: #b45309;
+  --syn-func: #0e7490;
+  --syn-type: #be185d;
+  --syn-var: #9a3412;
+  --syn-punct: #5c6675;
+  --syn-error: #c0261e;
+  --syn-error-bg: #c0261e1a;
+  --syn-ins-bg: #1a7f3714;
+  --syn-del-bg: #c0261e14;
+  --syn-ins-fg: #15803d;
+  --syn-del-fg: #c0261e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --syn-comment: #8b95a7;
+    --syn-keyword: #c4b5fd;
+    --syn-string: #86efac;
+    --syn-number: #fcd34d;
+    --syn-func: #67e8f9;
+    --syn-type: #f9a8d4;
+    --syn-var: #fdba74;
+    --syn-punct: #9aa5b5;
+    --syn-error: #ff9d94;
+    --syn-error-bg: #ff9d941f;
+    --syn-ins-bg: #86efac1a;
+    --syn-del-bg: #ff9d941a;
+    --syn-ins-fg: #86efac;
+    --syn-del-fg: #ff9d94;
+  }
+}
+
+.chroma {
+  // Comments
+  .c,
+  .ch,
+  .cd,
+  .cm,
+  .cp,
+  .cpf,
+  .c1,
+  .cs {
+    color: var(--syn-comment);
+    font-style: italic;
+  }
+
+  // Keywords
+  .k,
+  .kc,
+  .kd,
+  .kn,
+  .kp,
+  .kr,
+  .kv {
+    color: var(--syn-keyword);
+  }
+
+  // Types and classes
+  .kt,
+  .nc,
+  .nn,
+  .no,
+  .ne {
+    color: var(--syn-type);
+  }
+
+  // Functions, builtins, attributes, tags
+  .nf,
+  .fm,
+  .nb,
+  .bp,
+  .na,
+  .nt {
+    color: var(--syn-func);
+  }
+
+  // Variables
+  .nv,
+  .vc,
+  .vg,
+  .vi,
+  .vm,
+  .nl,
+  .py {
+    color: var(--syn-var);
+  }
+
+  // Strings
+  .s,
+  .sa,
+  .sb,
+  .sc,
+  .dl,
+  .sd,
+  .s2,
+  .se,
+  .sh,
+  .si,
+  .sx,
+  .s1,
+  .ss,
+  .sr {
+    color: var(--syn-string);
+  }
+
+  // Numbers
+  .m,
+  .mb,
+  .mf,
+  .mh,
+  .mi,
+  .mo,
+  .il {
+    color: var(--syn-number);
+  }
+
+  // Operators, punctuation, entities
+  .o,
+  .ow,
+  .p,
+  .pi,
+  .ni {
+    color: var(--syn-punct);
+  }
+
+  // Errors
+  .err {
+    color: var(--syn-error);
+    background-color: var(--syn-error-bg);
+    border-radius: 2px;
+  }
+
+  // Generic (diff / patch / console output).
+  .gd {
+    color: var(--syn-del-fg);
+    background-color: var(--syn-del-bg);
+  }
+
+  .gi {
+    color: var(--syn-ins-fg);
+    background-color: var(--syn-ins-bg);
+  }
+
+  .gh,
+  .gu {
+    color: var(--syn-func);
+    font-weight: 600;
+  }
+
+  .gp {
+    color: var(--syn-comment);
+    user-select: none;
+  }
+
+  .go {
+    color: var(--ink-muted);
+  }
+
+  .ge {
+    font-style: italic;
+  }
+
+  .gs {
+    font-weight: 700;
+  }
+
+  .gr,
+  .gt {
+    color: var(--syn-error);
+  }
+
+  .w {
+    color: var(--rule-strong);
+  }
+}

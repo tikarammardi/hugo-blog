@@ -1,0 +1,26 @@
+{{- /* year-groups.html — renders a page collection as year-grouped <section> blocks, shared by the index, the post listing and the tag pages. Years appear in first-seen order (the collection is date-descending, so the newest year first). Arguments: dict "pages" <page collection> "start" <int, the --i entrance-delay base for the .rise animation>. */ -}}
+{{- $posts := .pages -}}
+{{- $start := .start -}}
+{{- $years := slice -}}
+{{- range $posts -}}
+  {{- $y := printf "%d" .Date.Year -}}
+  {{- if not (in $years $y) -}}
+    {{- $years = append $y $years -}}
+  {{- end -}}
+{{- end -}}
+{{- range $i, $year := $years -}}
+  {{- $yp := where $posts "Date.Year" (int $year) -}}
+  <section class="year rise" style="--i: {{ add $i $start }}">
+    <h2 class="year__label">
+      {{ $year }}
+      <span class="count"
+        >{{ len $yp }} post{{ if ne (len $yp) 1 }}s{{ end }}</span
+      >
+    </h2>
+    <ul class="year__list">
+      {{- range $yp }}
+        {{ .Render "li" }}
+      {{- end }}
+    </ul>
+  </section>
+{{- end -}}

@@ -1,3 +1,21 @@
+{{ define "title" }}
+  404 ·
+  {{ .Site.Title }}
+{{ end }}
 {{ define "content" }}
-  {{ partial "404.html" . }}
+  <div class="column">
+    <div class="post-header rise">
+      <p class="post-kicker">
+        <span>Page Not Found</span>
+      </p>
+      <h1 class="post-title">404</h1>
+      <hr class="post-rule" />
+    </div>
+    <div class="post-body prose">
+      <p>
+        Sorry, this page does not exist. You can head back
+        <a href="{{ "/" | relURL }}">home</a>.
+      </p>
+    </div>
+  </div>
 {{ end }}

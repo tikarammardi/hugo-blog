@@ -1,12 +1,35 @@
 {{ define "title" }}
-  {{- if eq .Kind "taxonomy" -}}
-    {{- .Data.Singular | title -}}
-    {{- print ": " -}}
-  {{- end -}}
-
-  {{- .Title }} ·
-  {{ .Site.Title -}}
+  {{ .Title }} ·
+  {{ .Site.Title }}
 {{ end }}
 {{ define "content" }}
-  {{ partial "projects/project-list.html" . }}
+  <div class="column">
+    <header class="post-header rise">
+      <h1 class="post-title">{{ .Title }}</h1>
+      <hr class="post-rule" />
+    </header>
+    <div class="prose">
+      {{ range (sort hugo.Data.projects "weight" "desc") }}
+        <section class="project rise">
+          <h2 class="project__title">
+            <a href="{{ .external_url }}" rel="noopener">{{ .title }}</a>
+          </h2>
+          <p class="project__meta">
+            <a href="{{ .external_url }}" rel="noopener"
+              >{{ replace .external_url "https://" "" }}</a
+            >
+            <span class="sep" aria-hidden="true">·</span>
+            <span>{{ partial "projects/date-range.html" . }}</span>
+            {{- range $i, $t := .technologies }}
+              <span class="sep" aria-hidden="true">·</span>
+              <a href="{{ printf "/tags/%s/" ($t | urlize) | relURL }}"
+                >{{ $t }}</a
+              >
+            {{- end }}
+          </p>
+          <p class="project__blurb">{{ .blurb | markdownify }}</p>
+        </section>
+      {{ end }}
+    </div>
+  </div>
 {{ end }}

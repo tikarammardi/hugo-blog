@@ -1,0 +1,10 @@
+<header class="masthead column rise">
+  <p class="masthead__title">
+    <a href="{{ "/" | relURL }}">{{ .Site.Title }}</a>
+  </p>
+  {{/* Only the index carries the colophon, so only it gets the signpost. */}}
+  {{ if .IsHome }}
+    <a class="masthead__about" href="#about">About</a>
+  {{ end }}
+  {{ partial "signal.html" . }}
+</header>

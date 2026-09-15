@@ -1,0 +1,31 @@
+<aside class="colophon" id="about">
+  {{ with .Site.Params.avatarurl }}
+    <img
+      class="colophon__avatar"
+      src="{{ . | relURL }}"
+      width="164"
+      height="164"
+      alt="Portrait of {{ $.Site.Params.author }}"
+      loading="lazy"
+    />
+  {{ end }}
+  <div>
+    <p class="colophon__bio">{{ .Site.Params.info }}</p>
+    <ul class="colophon__links">
+      {{ range sort .Site.Params.social "Weight" }}
+        <li>
+          <span class="key">{{ .name | lower }}</span>
+          <span class="val">
+            <a href="{{ .url }}">{{ replace .url "https://" "" }}</a>
+          </span>
+        </li>
+      {{ end }}
+      <li>
+        <span class="key">rss</span>
+        <span class="val">
+          <a href="{{ "index.xml" | relURL }}">subscribe</a>
+        </span>
+      </li>
+    </ul>
+  </div>
+</aside>

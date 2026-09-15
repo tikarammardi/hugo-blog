@@ -1,0 +1,55 @@
+{{- /* signal.html — the spectrum under the masthead: SHA-256 of the page's URL, one bar per byte, mirrored on a faint centre line. Deterministic — a given page always draws the same spectrum, so a page's mark is its identity; the hex in the tooltip can be checked with: printf '/second-blog/' | sha256sum. */ -}}
+{{- $url := .RelPermalink -}}
+{{- $digest := $url | sha256 -}}
+{{- $hx := dict "0" 0 "1" 1 "2" 2 "3" 3 "4" 4 "5" 5 "6" 6 "7" 7 "8" 8 "9" 9 "a" 10 "b" 11 "c" 12 "d" 13 "e" 14 "f" 15 -}}
+{{- $chars := split $digest "" -}}
+{{- $bytes := slice -}}
+{{- range $i := seq 0 31 -}}
+  {{- $hi := index $chars (mul $i 2) -}}
+  {{- $lo := index $chars (add (mul $i 2) 1) -}}
+  {{- $bytes = append (add (mul 16 (index $hx $hi)) (index $hx $lo)) $bytes -}}
+{{- end -}}
+{{- /* Geometry: 32 cells of 31.25 units across a 1000x100 viewBox, each bar on the centre of its cell. A byte (0-255) spans 88 units of height, floored at 4 so a quiet byte still registers; the bar is a 2px on-screen stroke (non-scaling) so only its centre x and its end y's matter. */ -}}
+{{- $xs := slice -}}
+{{- $y1s := slice -}}
+{{- $y2s := slice -}}
+{{- range $i, $b := $bytes -}}
+  {{- $x := add (mul (float $i) 31.25) 15.625 -}}
+  {{- $h := div (mul (float $b) 88.0) 255.0 -}}
+  {{- if lt $h 4.0 -}}{{- $h = 4.0 -}}{{- end -}}
+  {{- $half := div $h 2.0 -}}
+  {{- $xs = append (printf "%.3f" $x) $xs -}}
+  {{- $y1s = append (printf "%.3f" (sub 50.0 $half)) $y1s -}}
+  {{- $y2s = append (printf "%.3f" (add 50.0 $half)) $y2s -}}
+{{- end -}}
+<div class="masthead__signal" aria-hidden="true">
+  <svg viewBox="0 0 1000 100" preserveAspectRatio="none">
+    <title>sha256 of this page's URL, one bar per byte — {{ $digest }}</title>
+    <defs>
+      <linearGradient
+        id="signal-ramp"
+        gradientUnits="userSpaceOnUse"
+        x1="0"
+        y1="0"
+        x2="1000"
+        y2="0"
+      >
+        <stop class="signal-ramp__lead" offset="0" />
+        <stop class="signal-ramp__body" offset="0.4" />
+        <stop class="signal-ramp__tail" offset="1" />
+      </linearGradient>
+    </defs>
+    <line class="signal-baseline" x1="0" y1="50" x2="1000" y2="50" />
+    {{- range $i, $x := $xs }}
+      <line
+        class="signal-bar"
+        pathLength="100"
+        x1="{{ $x }}"
+        y1="{{ index $y1s $i }}"
+        x2="{{ $x }}"
+        y2="{{ index $y2s $i }}"
+        style="--i: {{ $i }}"
+      />
+    {{- end }}
+  </svg>
+</div>

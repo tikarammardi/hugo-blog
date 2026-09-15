@@ -1,27 +1,11 @@
-{{ define "title" -}}
-  {{- .Title }} ·
-  {{ .Site.Title -}}
+{{ define "title" }}
+  {{ .Title }} ·
+  {{ .Site.Title }}
 {{ end }}
 {{ define "content" }}
-  <section class="container">
-    <article>
-      {{ partial "header.html" . }}
-
-      {{- with .Content -}}
-        <div>
-          {{ . | replaceRE "(<h[1-9] id=\"([^\"]+)\".+)(</h[1-9]+>)" `${1}<a href="#${2}" class="hanchor" ariaLabel="Anchor"> 🔗&#xFE0E;</a> ${3}` | safeHTML }}
-        </div>
-      {{- end -}}
-
-
-
-      {{ partial "mailing-list-signup.html" . }}
-
-      {{ partial "social-share.html" . }}
-
-      {{ partial "social-discuss.html" . }}
-
-
-    </article>
-  </section>
+  <article class="column">
+    {{ partial "post-header.html" . }}
+    <div class="post-body prose">{{ partial "post-content.html" . }}</div>
+    {{ partial "mailing-list-signup.html" . }}
+  </article>
 {{ end }}

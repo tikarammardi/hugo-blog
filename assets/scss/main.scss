@@ -1,0 +1,1703 @@
+// ---------------------------------------------------------------------------
+// tikarammardi.com — a typeset technical monograph.
+//
+// Prose is set in Newsreader; every piece of structural chrome (dates,
+// labels, nav, captions, code) is set in JetBrains Mono. The page is a
+// three-zone layout: a narrow left gutter for hanging section markers, a
+// fixed measure for the prose, and a right margin for the colophon (bio card
+// on the index). Zero JavaScript.
+//
+// Light and dark palettes follow the reader's OS preference; there is no
+// toggle, and none of the theming costs a byte of runtime code.
+// ---------------------------------------------------------------------------
+
+@use "sass:list";
+@use "shared" as *;
+@use "syntax";
+
+// --- Fonts -----------------------------------------------------------------
+// Self-hosted so there is no third-party DNS + TLS handshake on first paint.
+// Newsreader is a weight-variable serif; unicode-range keeps the -ext subsets
+// from being fetched unless a page actually needs them.
+
+@font-face {
+  font-family: "Newsreader";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/Newsreader-latin.woff2") format("woff2");
+  unicode-range:
+    u+0000-00ff, u+0131, u+0152-0153, u+02bb-02bc, u+02c6, u+02da, u+02dc,
+    u+0304, u+0308, u+0329, u+2000-206f, u+20ac, u+2122, u+2191, u+2193, u+2212,
+    u+2215, u+feff, u+fffd;
+}
+
+@font-face {
+  font-family: "Newsreader";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/Newsreader-latin-ext.woff2") format("woff2");
+  unicode-range:
+    u+0100-02ba, u+02bd-02c5, u+02c7-02cc, u+02ce-02d7, u+02dd-02ff, u+0304,
+    u+0308, u+0329, u+1d00-1dbf, u+1e00-1e9f, u+1ef2-1eff, u+2020, u+20a0-20ab,
+    u+20ad-20c0, u+2113, u+2c60-2c7f, u+a720-a7ff;
+}
+
+@font-face {
+  font-family: "Newsreader";
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/Newsreader-italic-latin.woff2") format("woff2");
+  unicode-range:
+    u+0000-00ff, u+0131, u+0152-0153, u+02bb-02bc, u+02c6, u+02da, u+02dc,
+    u+0304, u+0308, u+0329, u+2000-206f, u+20ac, u+2122, u+2191, u+2193, u+2212,
+    u+2215, u+feff, u+fffd;
+}
+
+@font-face {
+  font-family: "Newsreader";
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/Newsreader-italic-latin-ext.woff2") format("woff2");
+  unicode-range:
+    u+0100-02ba, u+02bd-02c5, u+02c7-02cc, u+02ce-02d7, u+02dd-02ff, u+0304,
+    u+0308, u+0329, u+1d00-1dbf, u+1e00-1e9f, u+1ef2-1eff, u+2020, u+20a0-20ab,
+    u+20ad-20c0, u+2113, u+2c60-2c7f, u+a720-a7ff;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  // The complete face, deliberately NOT subsetted and with no unicode-range:
+  // the subset splits stop short of the box-drawing block (U+2500-U+257F),
+  // which tears apart ASCII diagrams.
+  src: url("/fonts/JetBrainsMono-Regular.woff2") format("woff2");
+}
+
+// --- Tokens ----------------------------------------------------------------
+
+:root {
+  --serif:
+    "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
+    "Times New Roman", serif;
+  --mono:
+    "JetBrains Mono", ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo,
+    Consolas, "Liberation Mono", monospace;
+
+  // Cool porcelain, blue-black ink, and one sharp accent: cobalt, the colour
+  // of a fresh commit on a clean build.
+  --paper: #f3f5f8;
+  --paper-raised: #e6eaf0;
+  --ink: #181d24;
+  --ink-muted: #4d5560;
+  --ink-faint: #6c7482;
+  --rule: #d6dbe3;
+  --rule-strong: #b6bfcc;
+  --accent: #2039c9;
+  --accent-wash: #2039c91f;
+  --glow: #ffffff;
+
+  // Deliberately not themed. Diagrams and SVG charts are line art on a
+  // transparent background, drawn in near-black ink; on the dark palette they
+  // would sit on --paper-raised at a contrast ratio of 1.0 and vanish. Opaque
+  // screenshots cover this entirely, so they are unaffected either way.
+  --image-mat: #e6eaf0;
+
+  // Layout zones. The gutter holds hanging section markers and running heads,
+  // the margin holds the colophon; both collapse to zero on narrow screens and
+  // widen again once there is room to spend.
+  --measure: 36rem;
+  --gutter: 0rem;
+  --gap: 0rem;
+  --margin-col: 0rem;
+  --pad: 1.5rem;
+
+  --root-max: 19.5px;
+
+  --step: 1.6rem; // vertical rhythm unit
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    // Deep navy rather than neutral charcoal, so the cobalt has somewhere
+    // warm-cold to sit against.
+    --paper: #10151d;
+    --paper-raised: #181f2a;
+    --ink: #e4e9f0;
+    --ink-muted: #98a2b1;
+    --ink-faint: #747f90;
+    --rule: #242d3a;
+    --rule-strong: #374253;
+    --accent: #7b96ff;
+    --accent-wash: #7b96ff26;
+    --glow: #1a2230;
+  }
+}
+
+// Wide enough for a margin column. Sized so the whole three-zone block still
+// fits inside the viewport at the breakpoint itself.
+@media (min-width: $wide) {
+  :root {
+    --gutter: 4.5rem;
+    --gap: 2rem;
+    --margin-col: 13.5rem;
+  }
+}
+
+// Large and extra-large displays: the measure never grows (that would wreck
+// the line length) but the gutter and margin get more air.
+@media (min-width: 87.5rem) {
+  :root {
+    --gutter: 6rem;
+    --gap: 2.5rem;
+    --margin-col: 16rem;
+  }
+}
+
+@media (max-width: 34rem) {
+  :root {
+    --pad: 1.15rem;
+    --step: 1.35rem;
+  }
+}
+
+// --- Reset -----------------------------------------------------------------
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+ul,
+ol,
+dl,
+dd,
+figure,
+blockquote,
+pre {
+  margin: 0;
+}
+
+html {
+  // Scales gently between phone and 4K without breaking the reader's own
+  // font-size preference (the rem here resolves against the browser default).
+  font-size: clamp(17px, 0.95rem + 0.2vw, var(--root-max));
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1rem;
+  line-height: 1.62;
+  color: var(--ink);
+  background-color: var(--paper);
+  // A soft light source at the top-left rather than a flat fill.
+  background-image: radial-gradient(
+    75rem 32rem at 14% -6%,
+    var(--glow) 0%,
+    transparent 68%
+  );
+  background-repeat: no-repeat;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  overflow-wrap: break-word;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--paper);
+}
+
+// --- Layout ----------------------------------------------------------------
+
+.wrap {
+  width: 100%;
+  max-width: calc(
+    var(--gutter) + var(--measure) + var(--gap) + var(--margin-col) + 2 *
+      var(--pad)
+  );
+  margin-inline: auto;
+  padding-inline: var(--pad);
+  padding-bottom: calc(var(--step) * 2);
+}
+
+// Everything that holds prose is capped at the measure and offset by the
+// gutter; floated elements reach past it into the margin column.
+.column {
+  max-width: var(--measure);
+  margin-left: var(--gutter);
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  padding: 0.5rem 0.9rem;
+  background: var(--accent);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  z-index: 10;
+
+  &:focus {
+    left: 0.5rem;
+    top: 0.5rem;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 1px;
+}
+
+// In the document outline and the accessibility tree, but not on the page.
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+// --- Mono chrome -----------------------------------------------------------
+// Shared voice for every label, date and piece of metadata on the site.
+
+%chrome {
+  @include chrome;
+}
+
+// --- Masthead --------------------------------------------------------------
+
+.masthead {
+  padding-top: calc(var(--step) * 1.6);
+  padding-bottom: var(--step);
+  margin-bottom: calc(var(--step) * 1.4);
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 1rem;
+
+  // The line under the masthead is a spectrum of the page's own address:
+  // SHA-256 of the URL, one vertical bar per byte, mirrored on a faint centre
+  // line. Deterministic — a given page always draws the same spectrum. The
+  // bars are built at build time in partials/signal.html.
+  &__signal {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 26px;
+    -webkit-mask-image: linear-gradient(
+      to right,
+      #000 0%,
+      #000 62%,
+      transparent 96%
+    );
+    mask-image: linear-gradient(to right, #000 0%, #000 62%, transparent 96%);
+
+    svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .signal-bar {
+      stroke: url("#signal-ramp");
+      stroke-width: 2;
+      // The viewBox is stretched to the masthead, so without this the bars
+      // would be scaled wide and squat along with it.
+      vector-effect: non-scaling-stroke;
+    }
+
+    .signal-baseline {
+      stroke: var(--rule-strong);
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+    }
+  }
+
+  // Gradient stops are styled here rather than as presentation attributes so
+  // they follow the light and dark palettes: full cobalt at the left edge,
+  // fading out toward the right.
+  .signal-ramp__lead {
+    stop-color: var(--accent);
+    stop-opacity: 1;
+  }
+
+  .signal-ramp__body {
+    stop-color: var(--accent);
+    stop-opacity: 0.55;
+  }
+
+  .signal-ramp__tail {
+    stop-color: var(--accent);
+    stop-opacity: 0;
+  }
+}
+
+.masthead__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.018em;
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--accent);
+  }
+}
+
+// Signpost to the colophon, shown only at the widths where the colophon is
+// ordered below the post list and nothing on first screen hints it is there.
+.masthead__about {
+  @extend %chrome;
+  display: none;
+  flex: none;
+  color: var(--ink-muted);
+  text-decoration: none;
+  border-bottom: 1px solid var(--rule);
+
+  &:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+}
+
+// --- Prose -----------------------------------------------------------------
+
+.prose {
+  > * + * {
+    margin-top: var(--step);
+  }
+
+  p,
+  ul,
+  ol,
+  dl {
+    line-height: 1.65;
+  }
+
+  // Raw HTML blocks in a post nest their content, so the top-level owl above
+  // never reaches it. Give nested containers a rhythm of their own.
+  div > * + *,
+  details > * + *,
+  li > * + *,
+  td > * + *,
+  th > * + * {
+    margin-top: 0.7rem;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.012em;
+    margin-bottom: 0;
+    position: relative;
+    scroll-margin-top: 1.5rem;
+  }
+
+  // Whatever follows a heading sits close to it, at any nesting depth.
+  :is(h1, h2, h3, h4, h5, h6) + :not(h1, h2, h3, h4, h5, h6) {
+    margin-top: 0.55rem;
+  }
+
+  // A heading straight after another heading is a subsection, not a new
+  // section: keep them related without jamming them together.
+  :is(h1, h2, h3, h4, h5, h6) + :is(h1, h2, h3, h4, h5, h6) {
+    margin-top: calc(var(--step) * 1.1);
+  }
+
+  // Posts use `#` for their top-level sections, so h1 inside an article is a
+  // section heading — not the page title.
+  h1 {
+    font-size: 1.62rem;
+    margin-top: calc(var(--step) * 2);
+  }
+  h2 {
+    font-size: 1.4rem;
+    margin-top: calc(var(--step) * 1.7);
+  }
+  h3 {
+    font-size: 1.18rem;
+    margin-top: calc(var(--step) * 1.35);
+  }
+  h4,
+  h5,
+  h6 {
+    font-size: 1rem;
+    font-family: var(--mono);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin-top: calc(var(--step) * 1.1);
+  }
+
+  // The section mark hangs in the left gutter, out of the reading path, and is
+  // a permalink to the section. Injected at build time in the single layout.
+  .hanchor {
+    position: absolute;
+    right: calc(100% + 0.9rem);
+    top: 0.06em;
+    font-family: var(--mono);
+    font-size: 0.78em;
+    font-weight: 400;
+    color: var(--accent);
+    opacity: 0.4;
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+
+    &:hover,
+    &:focus-visible {
+      opacity: 1;
+    }
+  }
+
+  @media (max-width: $wide) {
+    // No gutter to hang in, so it sits inline ahead of the heading instead of
+    // disappearing — a section is just as worth linking to from a phone.
+    .hanchor {
+      position: static;
+      margin-right: 0.4em;
+      font-size: 0.7em;
+      vertical-align: 0.1em;
+    }
+  }
+
+  ul,
+  ol {
+    padding-left: 1.35rem;
+  }
+
+  li + li {
+    margin-top: 0.35rem;
+  }
+
+  li > ul,
+  li > ol {
+    margin-top: 0.35rem;
+  }
+
+  ul {
+    list-style: none;
+    padding-left: 1.15rem;
+  }
+
+  ul > li {
+    position: relative;
+
+    &::before {
+      content: "";
+      position: absolute;
+      left: -1.05rem;
+      top: 0.66em;
+      width: 0.38rem;
+      height: 1px;
+      background: var(--accent);
+      opacity: 0.75;
+    }
+  }
+
+  ul ul > li::before {
+    background: var(--rule-strong);
+  }
+
+  ol {
+    list-style: none;
+    counter-reset: ol;
+    padding-left: 1.85rem;
+  }
+
+  ol > li {
+    counter-increment: ol;
+    position: relative;
+
+    &::before {
+      content: counter(ol) ".";
+      position: absolute;
+      right: calc(100% + 0.5rem);
+      top: 0.06em;
+      font-family: var(--mono);
+      font-size: 0.75em;
+      color: var(--ink-faint);
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  dt {
+    font-weight: 600;
+  }
+
+  dd {
+    margin-left: 1.35rem;
+  }
+
+  strong,
+  b {
+    font-weight: 700;
+  }
+
+  hr {
+    border: 0;
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      var(--rule-strong),
+      var(--rule) 45%,
+      transparent
+    );
+    margin-block: calc(var(--step) * 1.6);
+  }
+
+  sup,
+  sub {
+    line-height: 0;
+    font-size: 0.7em;
+  }
+}
+
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.17em;
+  transition:
+    color 0.15s ease,
+    text-decoration-color 0.15s ease;
+
+  &:hover {
+    color: var(--accent);
+    text-decoration-thickness: 2px;
+  }
+}
+
+// --- Blockquote ------------------------------------------------------------
+
+blockquote {
+  padding-left: 1.15rem;
+  border-left: 2px solid var(--rule-strong);
+  color: var(--ink-muted);
+
+  > * + * {
+    margin-top: 0.7rem;
+  }
+}
+
+// --- Code ------------------------------------------------------------------
+
+code,
+kbd,
+samp {
+  font-family: var(--mono);
+  font-variant-ligatures: none;
+  font-feature-settings:
+    "liga" 0,
+    "calt" 0;
+}
+
+// Inline code
+:not(pre) > code {
+  font-size: 0.82em;
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.08em 0.26em;
+  color: var(--ink);
+  white-space: break-spaces;
+  word-break: break-word;
+}
+
+a :not(pre) > code,
+:not(pre) > code:has(a) {
+  color: inherit;
+}
+
+// Keys get a slightly raised chip so they read as something you press.
+kbd {
+  font-size: 0.78em;
+  background: var(--paper);
+  border: 1px solid var(--rule-strong);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  padding: 0.08em 0.36em;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.highlight {
+  position: relative;
+}
+
+pre {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-left: 2px solid var(--rule-strong);
+  border-radius: 3px;
+  padding: 0.85rem 1rem;
+  overflow-x: auto;
+  tab-size: 4;
+  color: var(--ink);
+
+  code {
+    background: none;
+    border: 0;
+    padding: 0;
+    font-size: inherit;
+    color: inherit;
+  }
+}
+
+// --- Collapsible blocks ----------------------------------------------------
+// <details> usually wraps a long listing, so the summary reads as a file tab
+// and the body sits in a quiet box under it.
+
+.prose details {
+  border: 1px solid var(--rule);
+  border-left: 2px solid var(--rule-strong);
+  border-radius: 3px;
+  padding: 0 0.9rem;
+
+  > summary {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--ink);
+    padding: 0.6rem 0;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::before {
+      content: "";
+      width: 0;
+      height: 0;
+      border-left: 0.5rem solid var(--accent);
+      border-top: 0.29rem solid transparent;
+      border-bottom: 0.29rem solid transparent;
+      align-self: center;
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+
+    &:hover {
+      color: var(--accent);
+    }
+  }
+
+  &[open] {
+    padding-bottom: 0.9rem;
+
+    > summary {
+      margin-bottom: 0.9rem;
+      border-bottom: 1px solid var(--rule);
+      color: var(--accent);
+
+      &::before {
+        transform: rotate(90deg);
+      }
+    }
+  }
+
+  // The listing inside already has its own frame; drop the double border.
+  .highlight {
+    margin-inline: -0.9rem;
+  }
+
+  pre {
+    border-inline: 0;
+    border-radius: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prose details > summary::before {
+    transition: none;
+  }
+}
+
+// --- Tables ----------------------------------------------------------------
+
+// Wide tables scroll themselves instead of the whole page; the wrapper is
+// injected at build time in the single layout.
+.table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+
+  th,
+  td {
+    padding: 0.45rem 0.7rem;
+    text-align: left;
+    border: 0;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+
+  th:first-child,
+  td:first-child {
+    padding-left: 0;
+  }
+
+  th:last-child,
+  td:last-child {
+    padding-right: 0;
+  }
+
+  th {
+    @extend %chrome;
+    color: var(--ink-muted);
+    border-bottom: 1px solid var(--rule-strong);
+    letter-spacing: 0.055em;
+    line-height: 1.35;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  tbody tr:hover td {
+    background: var(--accent-wash);
+  }
+}
+
+// --- Figures and media -----------------------------------------------------
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+// A screenshot or screencast is a figure like any other: framed, matted and
+// centred. `display: block` matters: an inline <img> sits on the text
+// baseline and leaves a few pixels of descender gap under itself.
+.prose img,
+.prose video {
+  display: block;
+  max-width: min(var(--image-width, 100%), 100%);
+  margin-inline: auto;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--image-mat);
+}
+
+.prose a img {
+  border-color: var(--rule-strong);
+}
+
+// The img shortcode can ask for an alignment; the default stays centred.
+.img.align-left,
+figure.align-left {
+  text-align: left;
+
+  img,
+  video {
+    margin-inline: 0 auto;
+  }
+}
+
+.img.align-right,
+figure.align-right {
+  text-align: right;
+
+  img,
+  video {
+    margin-inline: auto 0;
+  }
+}
+
+// Captions are structural chrome, so they are set in mono.
+.prose figcaption {
+  @extend %chrome;
+  margin-top: 0.55rem;
+  text-align: center;
+  line-height: 1.6;
+
+  p {
+    margin: 0;
+  }
+}
+
+iframe,
+embed,
+object {
+  max-width: 100%;
+  border: 0;
+}
+
+// An embedded player is a figure like any other, so it gets the same mat,
+// frame and block layout as a screenshot or a screencast. `aspect-ratio` does
+// here what width/height attributes do on an <img>: an iframe has no
+// intrinsic size at all, so without it the box has no height until the
+// player loads and the page reflows around it.
+iframe[src*="youtube"],
+iframe[src*="vimeo"] {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  margin-inline: auto;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--image-mat);
+}
+
+// The video shortcode wraps its player in a figure; keep the mat off the
+// wrapper so it frames the player exactly.
+.prose .video-inner {
+  display: block;
+}
+
+// An inlined file listing with a download link underneath.
+.prose .inline-file {
+  a.download-raw-button {
+    @extend %chrome;
+    display: inline-block;
+    margin-top: 0.6rem;
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid var(--rule-strong);
+
+    &:hover {
+      border-bottom-color: var(--accent);
+    }
+  }
+}
+
+// --- Footnotes -------------------------------------------------------------
+// Hugo renders endnotes in a .footnotes block; style it as a quiet appendix.
+
+.footnotes {
+  margin-top: calc(var(--step) * 2);
+  padding-top: var(--step);
+  border-top: 1px solid var(--rule);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--ink-muted);
+
+  ol {
+    padding-left: 1.85rem;
+  }
+
+  li {
+    position: relative;
+    list-style: none;
+
+    &::before {
+      content: counter(footnotes, decimal) ".";
+      counter-increment: footnotes;
+      position: absolute;
+      right: calc(100% + 0.5rem);
+      top: 0.06em;
+      font-family: var(--mono);
+      font-size: 0.75em;
+      color: var(--ink-faint);
+    }
+  }
+
+  .footnote-ref {
+    font-family: var(--mono);
+    font-size: 0.62em;
+    font-weight: 600;
+    line-height: 0;
+    vertical-align: super;
+    color: var(--accent);
+    text-decoration: none;
+    padding-inline: 0.08em;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// --- Alerts (notice shortcode) ----------------------------------------------
+// The notice shortcode emits .notice-<type>; map it onto the same quiet box
+// the reference design uses for alerts. The first bold word becomes the label.
+
+.notice {
+  --alert: var(--rule-strong);
+  border-left: 2px solid var(--alert);
+  background: var(--paper-raised);
+  padding: 0.85rem 1.1rem;
+  border-radius: 0 3px 3px 0;
+  color: var(--ink);
+
+  > * + * {
+    margin-top: 0.65rem;
+  }
+
+  p:first-child > strong:first-child {
+    @extend %chrome;
+    display: block;
+    color: var(--alert);
+    margin-bottom: 0.3rem;
+  }
+
+  :not(pre) > code {
+    background: transparent;
+    border-color: transparent;
+    padding: 0;
+  }
+
+  &.notice-note,
+  &.notice-info {
+    --alert: #0b5fa5;
+
+    @media (prefers-color-scheme: dark) {
+      --alert: #6fb2e8;
+    }
+  }
+
+  &.notice-tip,
+  &.notice-success {
+    --alert: #1a7f37;
+
+    @media (prefers-color-scheme: dark) {
+      --alert: #79c98d;
+    }
+  }
+
+  &.notice-important {
+    --alert: #7145c4;
+
+    @media (prefers-color-scheme: dark) {
+      --alert: #b79ded;
+    }
+  }
+
+  &.notice-warning {
+    --alert: #8a6100;
+
+    @media (prefers-color-scheme: dark) {
+      --alert: #dfb051;
+    }
+  }
+
+  &.notice-caution,
+  &.notice-danger,
+  &.notice-error {
+    --alert: #b1201d;
+
+    @media (prefers-color-scheme: dark) {
+      --alert: #ec8b7f;
+    }
+  }
+}
+
+// --- Post header -----------------------------------------------------------
+
+.post-header {
+  margin-bottom: calc(var(--step) * 1.5);
+}
+
+.post-kicker {
+  @extend %chrome;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.5rem;
+  align-items: baseline;
+  margin-bottom: 0.7rem;
+
+  .sep {
+    color: var(--rule-strong);
+    user-select: none;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid var(--rule-strong);
+
+    &:hover {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+  }
+}
+
+.post-title {
+  font-size: clamp(1.85rem, 1.3rem + 2.1vw, 2.85rem);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+.post-rule {
+  width: 3.5rem;
+  height: 2px;
+  background: var(--accent);
+  // `margin-inline: 0` matters: the UA default for <hr> is `auto`, which
+  // quietly centres the rule under a left-aligned title.
+  margin: 1.1rem auto 0 0;
+  border: 0;
+}
+
+.post-body {
+  margin-top: calc(var(--step) * 1.5);
+}
+
+// --- Site footer -----------------------------------------------------------
+
+.site-foot {
+  @extend %chrome;
+  margin-top: calc(var(--step) * 2.5);
+  padding-top: var(--step);
+  border-top: 1px solid var(--rule);
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-size: 0.7rem;
+  line-height: 1.75;
+  color: var(--ink-faint);
+
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0 0.5rem;
+
+    & + & {
+      margin-top: 0.15rem;
+    }
+  }
+
+  a {
+    color: var(--ink-muted);
+    text-decoration: none;
+    border-bottom: 1px solid var(--rule);
+
+    &:hover {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+  }
+
+  .sep {
+    color: var(--rule-strong);
+    user-select: none;
+  }
+
+  // The Hugo mark: a single-colour hexagon that follows the footer ink.
+  .hugo {
+    display: inline-flex;
+    align-items: center;
+    border-bottom: 0;
+
+    svg {
+      width: 0.95em;
+      height: 0.95em;
+      margin-left: 0.3rem;
+    }
+  }
+
+  // The official CC badge is black with white marks, so it reads on both
+  // palettes without a filter; on dark it melts into the paper and the white
+  // mark stands alone.
+  .cc {
+    display: inline-flex;
+    align-items: center;
+    border-bottom: 0;
+
+    img {
+      height: 15px;
+      width: auto;
+      margin-left: 0.35rem;
+      image-rendering: -webkit-optimize-contrast;
+    }
+  }
+
+  .rss {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border-bottom: 0;
+
+    svg {
+      width: 0.85em;
+      height: 0.85em;
+      fill: currentColor;
+    }
+  }
+}
+
+// --- Index -----------------------------------------------------------------
+
+.index-lead {
+  display: block;
+  text-decoration: none;
+  margin-bottom: calc(var(--step) * 2);
+  padding-left: 1rem;
+  border-left: 2px solid var(--accent);
+  // Anchors the title's stretched hit area below.
+  position: relative;
+
+  .label {
+    @extend %chrome;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 0.4rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    display: block;
+    color: inherit;
+    text-decoration: none;
+
+    // Stretch the title's click target over the whole card, so the card still
+    // behaves like one big link without being one big <a>.
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+    }
+  }
+
+  .excerpt {
+    display: block;
+    color: var(--ink-muted);
+    font-size: 0.92rem;
+    margin-top: 0.5rem;
+  }
+
+  .more {
+    @extend %chrome;
+    color: var(--accent);
+    display: block;
+    margin-top: 0.7rem;
+  }
+
+  &:hover .title {
+    color: var(--accent);
+  }
+}
+
+.year {
+  margin-top: calc(var(--step) * 2);
+  position: relative;
+
+  &:first-of-type {
+    margin-top: 0;
+  }
+}
+
+.year__label {
+  @extend %chrome;
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.6rem;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+
+  .count {
+    font-size: 0.66rem;
+    color: var(--rule-strong);
+  }
+}
+
+// On wide screens the year sits out in the gutter as a running head. It is
+// sized to the gutter exactly so it can never spill off the left of the page.
+@media (min-width: $wide) {
+  .year__label {
+    position: absolute;
+    right: calc(100% + 0.9rem);
+    top: 0.1rem;
+    width: calc(var(--gutter) - 0.9rem);
+    display: block;
+    border-bottom: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    text-align: right;
+    letter-spacing: 0.04em;
+
+    .count {
+      display: none;
+    }
+  }
+
+  .year__list {
+    border-top: 1px solid var(--rule);
+    padding-top: 0.35rem;
+  }
+}
+
+.year__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.entry {
+  display: grid;
+  grid-template-columns: 4.25rem 1fr;
+  gap: 0 0.85rem;
+  align-items: baseline;
+  padding-block: 0.42rem;
+
+  @media (max-width: 34rem) {
+    grid-template-columns: 1fr;
+    gap: 0.12rem;
+    padding-block: 0.5rem;
+  }
+
+  + .entry {
+    border-top: 1px solid var(--rule);
+  }
+
+  .date {
+    @extend %chrome;
+    font-size: 0.68rem;
+    white-space: nowrap;
+  }
+
+  a {
+    text-decoration: none;
+    line-height: 1.35;
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 0.17em;
+  }
+
+  &:hover a {
+    color: var(--accent);
+    text-decoration-color: var(--accent);
+  }
+
+  &:hover .date {
+    color: var(--accent);
+  }
+}
+
+// --- Colophon (bio card) ---------------------------------------------------
+
+.page-index {
+  display: flow-root;
+}
+
+.colophon {
+  float: right;
+  width: var(--margin-col);
+  margin-right: calc((var(--gap) + var(--margin-col)) * -1);
+  margin-bottom: var(--step);
+  // Jumped to from the masthead; leave air above it on arrival.
+  scroll-margin-top: var(--step);
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--ink-muted);
+}
+
+.colophon__avatar {
+  width: 100%;
+  max-width: 8.5rem;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 3px;
+  border: 1px solid var(--rule-strong);
+  display: block;
+  margin-bottom: 0.85rem;
+  filter: grayscale(0.35);
+  transition: filter 0.3s ease;
+
+  &:hover {
+    filter: grayscale(0);
+  }
+}
+
+.colophon__bio {
+  margin-bottom: 1rem;
+
+  a {
+    text-decoration-color: var(--rule-strong);
+  }
+}
+
+.colophon__links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--rule);
+
+  // The key sits above its value rather than beside it.
+  li {
+    padding-block: 0.4rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .key {
+    @extend %chrome;
+    display: block;
+    font-size: 0.6rem;
+    margin-bottom: 0.05rem;
+  }
+
+  .val {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    overflow-wrap: anywhere;
+
+    a {
+      color: var(--ink-muted);
+      text-decoration: none;
+      border-bottom: 1px solid var(--rule-strong);
+
+      &:hover {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+    }
+  }
+}
+
+// Narrow: the float is dropped and the card moves below the article list.
+@media (max-width: $wide) {
+  // Out of the margin and out of sight, so the masthead grows a way back to it.
+  .masthead__about {
+    display: inline-block;
+  }
+
+  .page-index {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .colophon {
+    float: none;
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-top: calc(var(--step) * 2);
+    padding-top: var(--step);
+    border-top: 1px solid var(--rule);
+    order: 3;
+    display: grid;
+    grid-template-columns: 8.5rem 1fr;
+    gap: 0 1.25rem;
+    align-items: start;
+  }
+
+  .colophon__avatar {
+    margin-bottom: 0;
+    grid-row: span 2;
+  }
+
+  .index-body {
+    order: 2;
+  }
+
+  @media (max-width: 30rem) {
+    .colophon {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .colophon__avatar {
+      max-width: 6.5rem;
+    }
+  }
+}
+
+// --- Projects --------------------------------------------------------------
+
+.project {
+  padding-block: 1rem;
+
+  + .project {
+    border-top: 1px solid var(--rule);
+  }
+
+  .project__title {
+    font-size: 1.3rem;
+    margin-top: 0;
+
+    a {
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+
+      &:hover {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+    }
+  }
+
+  .project__meta {
+    @extend %chrome;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 0.45rem;
+    font-size: 0.64rem;
+    margin-top: 0.25rem;
+
+    a {
+      color: var(--ink-muted);
+      text-decoration: none;
+      border-bottom: 1px solid var(--rule-strong);
+
+      &:hover {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+    }
+
+    .sep {
+      color: var(--rule-strong);
+      user-select: none;
+    }
+  }
+
+  .project__blurb {
+    margin-top: 0.55rem;
+    font-size: 0.95rem;
+  }
+}
+
+// --- Subscribe -------------------------------------------------------------
+// The mailing-list box, drawn in the same register as the alerts: a quiet
+// raised panel with a mono label.
+
+.subscribe-container {
+  margin-top: calc(var(--step) * 2.5);
+  border: 1px solid var(--rule);
+  border-left: 2px solid var(--accent);
+  border-radius: 0 3px 3px 0;
+  background: var(--paper-raised);
+  padding: 1.1rem 1.25rem 1.25rem;
+
+  h3 {
+    @extend %chrome;
+    color: var(--ink);
+    margin-bottom: 0.45rem;
+  }
+
+  > .subscribe-container-inner > p,
+  .subscribe-container-inner p {
+    color: var(--ink-muted);
+    font-size: 0.92rem;
+    margin: 0 0 0.9rem;
+  }
+
+  input[type="email"] {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    background: var(--paper);
+    color: var(--ink);
+    border: 1px solid var(--rule-strong);
+    border-radius: 3px;
+    padding: 0.55rem 0.7rem;
+    width: 100%;
+    max-width: 20rem;
+
+    &:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+  }
+
+  .subscribe-topic {
+    margin-top: 0.85rem;
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--ink-muted);
+      cursor: pointer;
+    }
+
+    input[type="radio"] {
+      margin-right: 0.45rem;
+      accent-color: var(--accent);
+    }
+  }
+
+  .clear {
+    clear: both;
+  }
+
+  input[type="submit"] {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    background: var(--accent);
+    color: var(--paper);
+    border: 0;
+    border-radius: 3px;
+    padding: 0.6rem 1.3rem;
+    margin-top: 0.9rem;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--ink);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+  }
+}
+
+// --- Motion ----------------------------------------------------------------
+// One orchestrated entrance on load; nothing animates during reading.
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .rise {
+    animation: rise 0.5s cubic-bezier(0.22, 0.68, 0.35, 1) backwards;
+    animation-delay: calc(var(--i, 0) * 60ms);
+  }
+
+  @keyframes signal-grow {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  // Each bar draws itself top to bottom; the stagger reads left to right
+  // across the page, like a sweep.
+  .masthead__signal .signal-bar {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: signal-grow 0.9s cubic-bezier(0.32, 0.5, 0.3, 1) forwards;
+    animation-delay: calc(0.18s + var(--i, 0) * 18ms);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .colophon__avatar {
+    transition: none;
+  }
+}
+
+// --- Print -----------------------------------------------------------------
+
+@media print {
+  :root {
+    --paper: #fff;
+    --paper-raised: #fff;
+    --ink: #000;
+    --ink-muted: #333;
+    --ink-faint: #555;
+    --rule: #bbb;
+    --rule-strong: #888;
+    --accent: #000;
+    --gutter: 0rem;
+    --margin-col: 0rem;
+    --gap: 0rem;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .colophon,
+  .skip-link,
+  .subscribe-container,
+  .masthead__signal {
+    display: none;
+  }
+
+  // Collapsed sections still print their contents.
+  details {
+    border: 0;
+    padding: 0;
+  }
+
+  details > summary::before {
+    content: none;
+  }
+
+  pre,
+  blockquote,
+  details,
+  .notice {
+    break-inside: avoid;
+  }
+
+  a::after {
+    content: " (" attr(href) ")";
+    font-size: 0.75em;
+    color: #555;
+  }
+
+  a[href^="#"]::after {
+    content: "";
+  }
+}
