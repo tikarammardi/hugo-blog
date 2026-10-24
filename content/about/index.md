@@ -2,6 +2,13 @@
 title: About Me
 ---
 
+<figure class="epigraph">
+  <blockquote>
+    <p>What I cannot create, I do not understand.</p>
+  </blockquote>
+  <figcaption>Richard Feynman</figcaption>
+</figure>
+
 {{<img src="me.jpeg" alt="Profile Picture" max-width="250px" align="left">}}
 
 I am a Software Engineer and lifelong learner. I have worked on a variety of projects, including web applications, mobile applications, and cloud-based solutions.
