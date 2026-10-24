@@ -1,7 +1,7 @@
 +++
 date = '2026-10-24T14:08:07+05:30'
 draft = false
-title = 'Pixels, Polish, and Progress: My UI Revamp'
+title = 'My UI Revamp'
 description = 'I rebuilt my Hugo blog around one column, two typefaces, and no JavaScript. A local model did most of the typing.'
 tags = ['hugo', 'design', 'llm']
 +++
