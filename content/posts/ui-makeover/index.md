@@ -53,8 +53,6 @@ It is generated at build time by a Hugo partial, as inline SVG with a gradient. 
 
 ## The slop machine
 
-I have been calling this project the slop machine. The name does two jobs: it keeps me honest about how much of the code I did not write, and it stops the model from taking credit for the taste.
-
 The setup:
 
 - DeepSeek's agent harness, driving the edits
