@@ -2,9 +2,9 @@
   <p class="masthead__title">
     <a href="{{ "/" | relURL }}">{{ .Site.Title }}</a>
   </p>
-  {{/* Only the index carries the colophon, so only it gets the signpost. */}}
-  {{ if .IsHome }}
-    <a class="masthead__about" href="#about">About</a>
-  {{ end }}
+  <nav class="masthead__nav" aria-label="Primary">
+    <a href="{{ "/projects/" | relURL }}">Projects</a>
+    <a href="{{ "/about/" | relURL }}">About</a>
+  </nav>
   {{ partial "signal.html" . }}
 </header>
